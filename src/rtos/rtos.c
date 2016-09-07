@@ -18,6 +18,12 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.           *
  ***************************************************************************/
 
+/*
+ * ChangeLog:
+ *   2016 changed by Sony Corporation
+ */
+
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -36,6 +42,7 @@ extern struct rtos_type Linux_os;
 extern struct rtos_type ChibiOS_rtos;
 extern struct rtos_type embKernel_rtos;
 extern struct rtos_type mqx_rtos;
+extern struct rtos_type nuttx_rtos;
 
 static struct rtos_type *rtos_types[] = {
 	&ThreadX_rtos,
@@ -45,6 +52,7 @@ static struct rtos_type *rtos_types[] = {
 	&ChibiOS_rtos,
 	&embKernel_rtos,
 	&mqx_rtos,
+	&nuttx_rtos,
 	NULL
 };
 

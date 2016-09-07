@@ -17,13 +17,18 @@
 # *   Free Software Foundation, Inc.,                                       *
 # *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.           *
 # ***************************************************************************
+#
+# ChangeLog:
+#   2016 changed by Sony Corporation
+#
+
 
 include $(top_srcdir)/common.mk
 
 METASOURCES = AUTO
 noinst_LTLIBRARIES = librtos.la
-noinst_HEADERS = rtos.h rtos_standard_stackings.h rtos_ecos_stackings.h linux_header.h rtos_chibios_stackings.h rtos_embkernel_stackings.h rtos_mqx_stackings.h
-librtos_la_SOURCES = rtos.c rtos_standard_stackings.c rtos_ecos_stackings.c  rtos_chibios_stackings.c rtos_embkernel_stackings.c rtos_mqx_stackings.c FreeRTOS.c ThreadX.c eCos.c linux.c ChibiOS.c embKernel.c mqx.c
+noinst_HEADERS = rtos.h rtos_standard_stackings.h rtos_ecos_stackings.h linux_header.h rtos_chibios_stackings.h rtos_embkernel_stackings.h rtos_mqx_stackings.h nuttx_header.h
+librtos_la_SOURCES = rtos.c rtos_standard_stackings.c rtos_ecos_stackings.c  rtos_chibios_stackings.c rtos_embkernel_stackings.c rtos_mqx_stackings.c FreeRTOS.c ThreadX.c eCos.c linux.c ChibiOS.c embKernel.c mqx.c nuttx.c
 
 librtos_la_CFLAGS =
 if IS_MINGW
