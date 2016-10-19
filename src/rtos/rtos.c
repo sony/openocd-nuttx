@@ -319,7 +319,7 @@ int rtos_thread_packet(struct connection *connection, char const *packet, int pa
 				if (tmp_str_ptr != tmp_str)
 					tmp_str_ptr += sprintf(tmp_str_ptr, " : ");
 				tmp_str_ptr +=
-					sprintf(tmp_str_ptr, " : %s", detail->extra_info_str);
+					sprintf(tmp_str_ptr, "%s", detail->extra_info_str);
 			}
 
 			assert(strlen(tmp_str) ==
