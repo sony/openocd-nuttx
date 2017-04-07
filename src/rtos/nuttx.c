@@ -1,9 +1,7 @@
 /***************************************************************************
- *   Copyright (C) 2012 by Matthias Blaicher                               *
- *   Matthias Blaicher - matthias@blaicher.com                             *
- *                                                                         *
- *   Copyright (C) 2011 by Broadcom Corporation                            *
- *   Evan Hunter - ehunter@broadcom.com                                    *
+ *   Copyright (C) 2016-2017 by Sony Corporation                           *
+ *   Masatoshi Tateishi - Masatoshi.Tateishi@jp.sony.com                   *
+ *   Masayuki Ishikawa - Masayuki.Ishikawa@jp.sony.com                     *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,12 +18,6 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
-
-/*
- * ChangeLog:
- *   2016 changed by Sony Corporation
- */
-
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
