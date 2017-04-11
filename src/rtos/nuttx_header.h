@@ -1,3 +1,25 @@
+#ifndef OPENOCD_RTOS_NUTTX_HEADER_H
+#define OPENOCD_RTOS_NUTTX_HEADER_H
+
+/***************************************************************************
+ *   Copyright (C) 2016-2017 by Sony Corporation                           *
+ *   Masatoshi Tateishi - Masatoshi.Tateishi@jp.sony.com                   *
+ *   Masayuki Ishikawa - Masayuki.Ishikawa@jp.sony.com                     *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+ ***************************************************************************/
+
 /*  gdb script to update the header file
   according to kernel version and build option
   before executing function awareness
@@ -41,6 +63,9 @@ end
 #define NAME_SIZE 32
 
 /* defconfig of nuttx */
-//#define CONFIG_DISABLE_SIGNALS
+/* #define CONFIG_DISABLE_SIGNALS */
 #define CONFIG_DISABLE_MQUEUE
-//#define CONFIG_PAGING
+/* #define CONFIG_PAGING */
+
+
+#endif /* OPENOCD_RTOS_NUTTX_HEADER_H */

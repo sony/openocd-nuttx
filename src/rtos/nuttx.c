@@ -14,9 +14,7 @@
  *   GNU General Public License for more details.                          *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
 #ifdef HAVE_CONFIG_H
@@ -68,8 +66,7 @@ static char *nuttx_symbol_list[] = {
 };
 
 /* see nuttx/include/nuttx/sched.h */
-struct tcb_s
-{
+struct tcb_s {
 	uint32_t flink;
 	uint32_t blink;
 	uint8_t  dat[256];
@@ -80,8 +77,7 @@ struct {
 	uint32_t prio;
 } g_tasklist[TASK_QUEUE_NUM];
 
-static char *task_state_str[] =
-{
+static char *task_state_str[] = {
 	"INVALID",
 	"PENDING",
 	"READYTORUN",
@@ -102,32 +98,32 @@ static char *task_state_str[] =
 
 /* see arch/arm/include/armv7-m/irq_cmnvector.h */
 static const struct stack_register_offset nuttx_stack_offsets_cortex_m[] = {
-    { 0x28, 32 },           /* r0   */
-    { 0x2c, 32 },           /* r1   */
-    { 0x30, 32 },           /* r2   */
-    { 0x34, 32 },           /* r3   */
-    { 0x08, 32 },           /* r4   */
-    { 0x0c, 32 },           /* r5   */
-    { 0x10, 32 },           /* r6   */
-    { 0x14, 32 },           /* r7   */
-    { 0x18, 32 },           /* r8   */
-    { 0x1c, 32 },           /* r9   */
-    { 0x20, 32 },           /* r10  */
-    { 0x24, 32 },           /* r11  */
-    { 0x38, 32 },           /* r12  */
-    {   0,  32 },           /* sp   */
-    { 0x3c, 32 },           /* lr   */
-    { 0x40, 32 },           /* pc   */
-    { 0x44, 32 },           /* xPSR */
+	{ 0x28, 32 },		/* r0   */
+	{ 0x2c, 32 },		/* r1   */
+	{ 0x30, 32 },		/* r2   */
+	{ 0x34, 32 },		/* r3   */
+	{ 0x08, 32 },		/* r4   */
+	{ 0x0c, 32 },		/* r5   */
+	{ 0x10, 32 },		/* r6   */
+	{ 0x14, 32 },		/* r7   */
+	{ 0x18, 32 },		/* r8   */
+	{ 0x1c, 32 },		/* r9   */
+	{ 0x20, 32 },		/* r10  */
+	{ 0x24, 32 },		/* r11  */
+	{ 0x38, 32 },		/* r12  */
+	{   0,  32 },		/* sp   */
+	{ 0x3c, 32 },		/* lr   */
+	{ 0x40, 32 },		/* pc   */
+	{ 0x44, 32 },		/* xPSR */
 };
 
 
 static const struct rtos_register_stacking nuttx_stacking_cortex_m = {
-    0x48,                                   /* stack_registers_size */
-    -1,                                     /* stack_growth_direction */
-    17,                                     /* num_output_registers */
-    0,                                      /* stack_alignment */
-    nuttx_stack_offsets_cortex_m   /* register_offsets */
+	0x48,                                   /* stack_registers_size */
+	-1,                                     /* stack_growth_direction */
+	17,                                     /* num_output_registers */
+	0,                                      /* stack_alignment */
+	nuttx_stack_offsets_cortex_m   /* register_offsets */
 };
 
 static uint8_t pid_offset = PID;
@@ -153,33 +149,47 @@ static int nuttx_thread_packet(struct connection *connection,
 	char cmd[GDB_BUFFER_SIZE / 2] = "";
 
 	if (!strncmp(packet, "qRcmd", 5)) {
-		int len = unhexify(cmd, packet + 6, sizeof(cmd));
+		int len = unhexify((uint8_t *)cmd, packet + 6, sizeof(cmd));
 		int offset;
 
 		if (len <= 0)
 			goto pass;
 
-		if ((offset = rcmd_offset(cmd, "nuttx.pid_offset")) >= 0) {
+		offset = rcmd_offset(cmd, "nuttx.pid_offset");
+
+		if (offset >= 0) {
 			LOG_INFO("pid_offset: %d", offset);
 			pid_offset = offset;
 			goto retok;
 		}
-		if ((offset = rcmd_offset(cmd, "nuttx.state_offset")) >= 0) {
+
+		offset = rcmd_offset(cmd, "nuttx.state_offset");
+
+		if (offset >= 0) {
 			LOG_INFO("state_offset: %d", offset);
 			state_offset = offset;
 			goto retok;
 		}
-		if ((offset = rcmd_offset(cmd, "nuttx.name_offset")) >= 0) {
+
+		offset = rcmd_offset(cmd, "nuttx.name_offset");
+
+		if (offset >= 0) {
 			LOG_INFO("name_offset: %d", offset);
 			name_offset = offset;
 			goto retok;
 		}
-		if ((offset = rcmd_offset(cmd, "nuttx.xcpreg_offset")) >= 0) {
+
+		offset = rcmd_offset(cmd, "nuttx.xcpreg_offset");
+
+		if (offset >= 0) {
 			LOG_INFO("xcpreg_offset: %d", offset);
 			xcpreg_offset = offset;
 			goto retok;
 		}
-		if ((offset = rcmd_offset(cmd, "nuttx.name_size")) >= 0) {
+
+		offset = rcmd_offset(cmd, "nuttx.name_size");
+
+		if (offset >= 0) {
 			LOG_INFO("name_size: %d", offset);
 			name_size = offset;
 			goto retok;
@@ -199,7 +209,6 @@ static int nuttx_detect_rtos(struct target *target)
 	if ((target->rtos->symbols != NULL) &&
 			(target->rtos->symbols[0].address != 0) &&
 			(target->rtos->symbols[1].address != 0)) {
-		LOG_OUTPUT("detect Nuttx");
 		return 1;
 	}
 	return 0;
@@ -227,8 +236,6 @@ static int nuttx_update_threads(struct rtos *rtos)
 	/* free old thread info */
 	if (rtos->thread_details) {
 		for (i = 0; i < rtos->thread_count; i++) {
-			if (rtos->thread_details[i].display_str)
-				free(rtos->thread_details[i].display_str);
 			if (rtos->thread_details[i].thread_name_str)
 				free(rtos->thread_details[i].thread_name_str);
 		}
@@ -280,10 +287,6 @@ static int nuttx_update_threads(struct rtos *rtos)
 			thread = &rtos->thread_details[thread_count - 1];
 			thread->threadid = tcb_addr;
 			thread->exists = true;
-			thread->display_str = malloc(256);
-			snprintf(thread->display_str, 256, "pid:%d",
-			    tcb.dat[pid_offset - 8] |
-			    tcb.dat[pid_offset - 8 + 1] << 8);
 
 			if (name_offset) {
 				thread->thread_name_str = malloc(name_size + 1);
@@ -309,7 +312,6 @@ static int nuttx_update_threads(struct rtos *rtos)
 static int nuttx_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	char **hex_reg_list) {
 
-	LOG_DEBUG("*** thread_id=%ld (0x%08x)", thread_id, (int32_t)thread_id);
 	*hex_reg_list = NULL;
 
 	return rtos_generic_stack_read(rtos->target, &nuttx_stacking_cortex_m,
@@ -330,11 +332,11 @@ static int nuttx_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
 }
 
 struct rtos_type nuttx_rtos = {
-        .name = "nuttx",
-        .detect_rtos = nuttx_detect_rtos,
-        .create = nuttx_create,
-        .update_threads = nuttx_update_threads,
-        .get_thread_reg_list = nuttx_get_thread_reg_list,
-        .get_symbol_list_to_lookup = nuttx_get_symbol_list_to_lookup,
+	.name = "nuttx",
+	.detect_rtos = nuttx_detect_rtos,
+	.create = nuttx_create,
+	.update_threads = nuttx_update_threads,
+	.get_thread_reg_list = nuttx_get_thread_reg_list,
+	.get_symbol_list_to_lookup = nuttx_get_symbol_list_to_lookup,
 };
 
