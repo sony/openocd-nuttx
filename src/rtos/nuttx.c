@@ -69,7 +69,7 @@ static char *nuttx_symbol_list[] = {
 struct tcb_s {
 	uint32_t flink;
 	uint32_t blink;
-	uint8_t  dat[256];
+	uint8_t  dat[512];
 };
 
 struct {
@@ -126,11 +126,39 @@ static const struct rtos_register_stacking nuttx_stacking_cortex_m = {
 	nuttx_stack_offsets_cortex_m   /* register_offsets */
 };
 
-static uint8_t pid_offset = PID;
-static uint8_t state_offset = STATE;
-static uint8_t name_offset =  NAME;
-static uint8_t xcpreg_offset = XCPREG;
-static uint8_t name_size = NAME_SIZE;
+static const struct stack_register_offset nuttx_stack_offsets_cortex_m_fpu[] = {
+	{ 0x6c, 32 },		/* r0   */
+	{ 0x70, 32 },		/* r1   */
+	{ 0x74, 32 },		/* r2   */
+	{ 0x78, 32 },		/* r3   */
+	{ 0x08, 32 },		/* r4   */
+	{ 0x0c, 32 },		/* r5   */
+	{ 0x10, 32 },		/* r6   */
+	{ 0x14, 32 },		/* r7   */
+	{ 0x18, 32 },		/* r8   */
+	{ 0x1c, 32 },		/* r9   */
+	{ 0x20, 32 },		/* r10  */
+	{ 0x24, 32 },		/* r11  */
+	{ 0x7c, 32 },		/* r12  */
+	{   0,  32 },		/* sp   */
+	{ 0x80, 32 },		/* lr   */
+	{ 0x84, 32 },		/* pc   */
+	{ 0x88, 32 },		/* xPSR */
+};
+
+static const struct rtos_register_stacking nuttx_stacking_cortex_m_fpu = {
+	0x8c,                                   /* stack_registers_size */
+	-1,                                     /* stack_growth_direction */
+	17,                                     /* num_output_registers */
+	0,                                      /* stack_alignment */
+	nuttx_stack_offsets_cortex_m_fpu        /* register_offsets */
+};
+
+static int pid_offset = PID;
+static int state_offset = STATE;
+static int name_offset =  NAME;
+static int xcpreg_offset = XCPREG;
+static int name_size = NAME_SIZE;
 
 static int rcmd_offset(const char *cmd, const char *name)
 {
@@ -149,7 +177,7 @@ static int nuttx_thread_packet(struct connection *connection,
 	char cmd[GDB_BUFFER_SIZE / 2] = "";
 
 	if (!strncmp(packet, "qRcmd", 5)) {
-		int len = unhexify((uint8_t *)cmd, packet + 6, sizeof(cmd));
+		size_t len = unhexify((uint8_t *)cmd, packet + 6, sizeof(cmd));
 		int offset;
 
 		if (len <= 0)
@@ -194,7 +222,6 @@ static int nuttx_thread_packet(struct connection *connection,
 			name_size = offset;
 			goto retok;
 		}
-
 	}
 pass:
 	return rtos_thread_packet(connection, packet, packet_size);
@@ -287,16 +314,24 @@ static int nuttx_update_threads(struct rtos *rtos)
 			thread = &rtos->thread_details[thread_count - 1];
 			thread->threadid = tcb_addr;
 			thread->exists = true;
+			thread->extra_info_str = malloc(256);
+			snprintf(thread->extra_info_str, 256, "pid:%d",
+				tcb.dat[pid_offset - 8] |
+				tcb.dat[pid_offset - 8 + 1] << 8);
 
 			if (name_offset) {
 				thread->thread_name_str = malloc(name_size + 1);
 				snprintf(thread->thread_name_str, name_size,
 				    "%s", (char *)&tcb.dat[name_offset - 8]);
-			} else
-				thread->thread_name_str = NULL;
+			} else {
+				thread->thread_name_str = malloc(sizeof("None"));
+				strcpy(thread->thread_name_str, "None");
+			}
 
-			thread->extra_info_str =
-			    task_state_str[tcb.dat[state_offset - 8]];
+			/* Add state string */
+			strncat(thread->extra_info_str, ", ", 256);
+			strncat(thread->extra_info_str, task_state_str[tcb.dat[state_offset - 8]], 256);
+
 			tcb_addr = tcb.flink;
 		}
 	}
@@ -311,12 +346,42 @@ static int nuttx_update_threads(struct rtos *rtos)
  */
 static int nuttx_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	char **hex_reg_list) {
+	int retval;
 
 	*hex_reg_list = NULL;
 
-	return rtos_generic_stack_read(rtos->target, &nuttx_stacking_cortex_m,
+	/* Check for armv7m with *enabled* FPU, i.e. a Cortex-M4F */
+	int cm4_fpu_enabled = 0;
+	struct armv7m_common *armv7m_target = target_to_armv7m(rtos->target);
+	if (is_armv7m(armv7m_target)) {
+		if (armv7m_target->fp_feature == FPv4_SP) {
+			/* Found ARM v7m target which includes a FPU */
+			uint32_t cpacr;
+
+			retval = target_read_u32(rtos->target, FPU_CPACR, &cpacr);
+			if (retval != ERROR_OK) {
+				LOG_ERROR("Could not read CPACR register to check FPU state");
+				return -1;
+			}
+
+			/* Check if CP10 and CP11 are set to full access. */
+			if (cpacr & 0x00F00000) {
+				/* Found target with enabled FPU */
+				cm4_fpu_enabled = 1;
+			}
+		}
+	}
+
+	const struct rtos_register_stacking *stacking;
+	if (cm4_fpu_enabled) {
+		stacking = &nuttx_stacking_cortex_m_fpu;
+	} else {
+		stacking = &nuttx_stacking_cortex_m;
+	}
+
+	return rtos_generic_stack_read(rtos->target, stacking,
 	    (uint32_t)thread_id + xcpreg_offset, hex_reg_list);
-};
+}
 
 static int nuttx_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
 {
