@@ -314,6 +314,10 @@ static int nuttx_update_threads(struct rtos *rtos)
 			thread = &rtos->thread_details[thread_count - 1];
 			thread->threadid = tcb_addr;
 			thread->exists = true;
+			thread->extra_info_str = malloc(256);
+			snprintf(thread->extra_info_str, 256, "pid:%d",
+				tcb.dat[pid_offset - 8] |
+				tcb.dat[pid_offset - 8 + 1] << 8);
 
 			if (name_offset) {
 				thread->thread_name_str = malloc(name_size + 1);
