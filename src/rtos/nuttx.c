@@ -177,7 +177,7 @@ static int nuttx_thread_packet(struct connection *connection,
 	char cmd[GDB_BUFFER_SIZE / 2] = "";
 
 	if (!strncmp(packet, "qRcmd", 5)) {
-		int len = unhexify((uint8_t *)cmd, packet + 6, sizeof(cmd));
+		size_t len = unhexify((uint8_t *)cmd, packet + 6, sizeof(cmd));
 		int offset;
 
 		if (len <= 0)
