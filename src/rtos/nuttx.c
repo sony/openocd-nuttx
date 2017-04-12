@@ -315,9 +315,10 @@ static int nuttx_update_threads(struct rtos *rtos)
 			thread->threadid = tcb_addr;
 			thread->exists = true;
 			thread->extra_info_str = malloc(256);
-			snprintf(thread->extra_info_str, 256, "pid:%d",
+			snprintf(thread->extra_info_str, 256, "pid:%d, %s",
 				tcb.dat[pid_offset - 8] |
-				tcb.dat[pid_offset - 8 + 1] << 8);
+				tcb.dat[pid_offset - 8 + 1] << 8,
+				task_state_str[tcb.dat[state_offset - 8]]);
 
 			if (name_offset) {
 				thread->thread_name_str = malloc(name_size + 1);
@@ -327,10 +328,6 @@ static int nuttx_update_threads(struct rtos *rtos)
 				thread->thread_name_str = malloc(sizeof("None"));
 				strcpy(thread->thread_name_str, "None");
 			}
-
-			/* Add state string */
-			strncat(thread->extra_info_str, ", ", 256);
-			strncat(thread->extra_info_str, task_state_str[tcb.dat[state_offset - 8]], 256);
 
 			tcb_addr = tcb.flink;
 		}
@@ -373,11 +370,10 @@ static int nuttx_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	}
 
 	const struct rtos_register_stacking *stacking;
-	if (cm4_fpu_enabled) {
+	if (cm4_fpu_enabled)
 		stacking = &nuttx_stacking_cortex_m_fpu;
-	} else {
+	else
 		stacking = &nuttx_stacking_cortex_m;
-	}
 
 	return rtos_generic_stack_read(rtos->target, stacking,
 	    (uint32_t)thread_id + xcpreg_offset, hex_reg_list);
