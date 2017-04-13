@@ -258,19 +258,8 @@ static int nuttx_update_threads(struct rtos *rtos)
 	uint32_t tcb_addr;
 	int i;
 
-	thread_count = 0;
-
-	/* free old thread info */
-	if (rtos->thread_details) {
-		for (i = 0; i < rtos->thread_count; i++) {
-			if (rtos->thread_details[i].thread_name_str)
-				free(rtos->thread_details[i].thread_name_str);
-		}
-
-		free(rtos->thread_details);
-		rtos->thread_details = NULL;
-		rtos->thread_count = 0;
-	}
+	/* free previous thread details */
+	rtos_free_threadlist(rtos);
 
 	ret = target_read_buffer(rtos->target, rtos->symbols[1].address,
 		sizeof(g_tasklist), (uint8_t *)&g_tasklist);
@@ -278,6 +267,8 @@ static int nuttx_update_threads(struct rtos *rtos)
 		LOG_ERROR("target_read_buffer : ret = %d\n", ret);
 		return ERROR_FAIL;
 	}
+
+	thread_count = 0;
 
 	for (i = 0; i < (int)TASK_QUEUE_NUM; i++) {
 
