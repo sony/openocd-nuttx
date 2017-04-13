@@ -257,6 +257,7 @@ static int nuttx_update_threads(struct rtos *rtos)
 	uint32_t head;
 	uint32_t tcb_addr;
 	int i;
+	uint8_t state;
 
 	/* free previous thread details */
 	rtos_free_threadlist(rtos);
@@ -305,11 +306,16 @@ static int nuttx_update_threads(struct rtos *rtos)
 			thread = &rtos->thread_details[thread_count - 1];
 			thread->threadid = tcb_addr;
 			thread->exists = true;
-			thread->extra_info_str = malloc(256);
-			snprintf(thread->extra_info_str, 256, "pid:%d, %s",
-				tcb.dat[pid_offset - 8] |
-				tcb.dat[pid_offset - 8 + 1] << 8,
-				task_state_str[tcb.dat[state_offset - 8]]);
+
+			state = tcb.dat[state_offset - 8];
+			thread->extra_info_str = NULL;
+			if (state < sizeof(task_state_str)/sizeof(char *)) {
+				thread->extra_info_str = malloc(256);
+				snprintf(thread->extra_info_str, 256, "pid:%d, %s",
+				    tcb.dat[pid_offset - 8] |
+				    tcb.dat[pid_offset - 8 + 1] << 8,
+				    task_state_str[state]);
+			}
 
 			if (name_offset) {
 				thread->thread_name_str = malloc(name_size + 1);
