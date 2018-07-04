@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2016-2017 by Sony Corporation                           *
+ *   Copyright 2016,2017 Sony Video & Sound Products Inc.                  *
  *   Masatoshi Tateishi - Masatoshi.Tateishi@jp.sony.com                   *
  *   Masayuki Ishikawa - Masayuki.Ishikawa@jp.sony.com                     *
  *                                                                         *
